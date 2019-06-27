@@ -1,7 +1,6 @@
 package com.optimbox.gomoku.model;
 
-public enum Cell {
-    EMPTY,
+public enum Color {
     BLACK,
     WHITE
 }

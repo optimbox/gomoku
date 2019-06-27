@@ -1,25 +1,29 @@
 package com.optimbox.gomoku.model;
 
-import static com.optimbox.gomoku.model.Cell.*;
+import java.util.Optional;
+
+import static com.optimbox.gomoku.model.Color.*;
 
 public class Board {
 
-    public static int N = 15;
+    static int N = 15;
 
     public static int CENTER = N / 2;
 
-    private Cell grid[][];
+    private Optional<Color> grid[][];
 
-    private int turn;
+    private Color turn;
 
-    private Move lastMove = null;
+    private Move lastMove;
 
     public Board() {
-        grid = new Cell[N][N];
+        turn = BLACK;
+        grid = new Optional[N][N];
         reset();
+        lastMove = null;
     }
 
-    public Cell[][] getGrid() {
+    public Optional<Color>[][] getGrid() {
         return grid;
     }
 
@@ -46,9 +50,9 @@ public class Board {
         int total = 0;
         int curRow = origin.getRow();
         int curCol = origin.getCol();
-        Cell color = grid[curRow][curCol];
+        Color color = grid[curRow][curCol].get();
 
-        while (insideBoard(curRow, curCol) && grid[curRow][curCol] == color) {
+        while (insideBoard(curRow, curCol) && grid[curRow][curCol].isPresent() && grid[curRow][curCol].get() == color) {
             curRow += rowDelta;
             curCol += colDelta;
             ++total;
@@ -64,9 +68,9 @@ public class Board {
             StringBuilder buffer = new StringBuilder();
             buffer.append(row % 10);
             for (int col = 0; col < N; ++col) {
-                Cell cell = grid[row][col];
+                Optional<Color> cell = grid[row][col];
                 buffer.append(" ");
-                buffer.append(cell == BLACK ? 'X' : (cell == WHITE ? 'O': '.'));
+                buffer.append(cell.isPresent() ? (cell.get() == BLACK ? 'X' : 'O') : '.');
             }
             System.out.println(buffer.toString());
         }
@@ -75,23 +79,31 @@ public class Board {
     private void reset() {
         for (int row = 0; row < N; ++row) {
             for (int col = 0; col < N; ++col) {
-                grid[row][col] = Cell.EMPTY;
+                grid[row][col] = Optional.empty();
             }
         }
     }
 
     public void makeMove(Move move) {
-        if (!insideBoard(move.getRow(), move.getCol()) || (grid[move.getRow()][move.getCol()] != EMPTY)) {
+        if (!insideBoard(move.getRow(), move.getCol()) || (grid[move.getRow()][move.getCol()].isPresent())) {
             throw new RuntimeException("Illegal move");
         }
 
-        grid[move.getRow()][move.getCol()] = turn == 0 ? BLACK : WHITE;
-        turn = 1 - turn;
+        grid[move.getRow()][move.getCol()] = Optional.of(turn);
+        switchTurn();
         lastMove = move;
     }
 
+    private void switchTurn() {
+        if (turn == BLACK) {
+            turn = WHITE;
+        } else {
+            turn = BLACK;
+        }
+    }
+
     private boolean insideBoard(int row, int col) {
-        return (row >= 0 && row <= N - 1 && row >= 0 && row <= N - 1);
+        return (row >= 0 && row <= N - 1 && col >= 0 && col <= N - 1);
     }
 
 }
